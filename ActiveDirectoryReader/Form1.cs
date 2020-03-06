@@ -11,6 +11,7 @@ using System.DirectoryServices;
 using System.Configuration;
 using System.Security.Principal;
 using System.Collections;
+using LdapAndAdLibrary;
 
 namespace ActiveDirectoryReader
 {
@@ -68,7 +69,7 @@ namespace ActiveDirectoryReader
                             if (value == null)
                                 continue;
 
-                            string valueString = ExtractAttributValue(name, value);
+                            string valueString = LdapHelper.ExtractAttributValue(name, value);
                             richTextBoxMessage.AppendText(string.Format("{0}={1}\n", name, valueString));
                         }
                     }
@@ -124,7 +125,7 @@ namespace ActiveDirectoryReader
                         if (value == null)
                             continue;
 
-                        string valueString = ExtractAttributValue(name, value);
+                        string valueString = LdapHelper.ExtractAttributValue(name, value);
 
                         richTextBoxMessage.AppendText(string.Format("{0}={1}\n", name, valueString));
 
@@ -147,29 +148,6 @@ namespace ActiveDirectoryReader
             }
         }
 
-        private static string ExtractAttributValue(string name, object value)
-        {
-            string valueString;
-            if (name.Contains("objectguid") && value is byte[] && ((byte[])value).Length == 16)
-            {
-                Guid guid = new Guid(value as byte[]);
-                valueString = guid.ToString();
-            }
-            else if (name == "objectsid" && value is byte[])
-            {
-                // A security identifier (SID) is used to uniquely identify a security principal or security group.
-                // Security principals can represent any entity that can be authenticated by the operating system, such as a user account, a computer account, or a thread or process that runs in the security context of a user or computer account.
-                // https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/security-identifiers
-                // https://www.lijyyh.com/2015/08/sid-deep-dive.html
-                SecurityIdentifier sid = new SecurityIdentifier((byte[])value, 0);
-                valueString = sid.Value;
-            }
-            else
-            {
-                valueString = value.ToString();
-            }
-
-            return valueString;
-        }
+        
     }
 }
