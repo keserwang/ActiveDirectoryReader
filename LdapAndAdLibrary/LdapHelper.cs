@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.DirectoryServices.Protocols;
 using System.Linq;
 using System.Net;
@@ -14,21 +15,40 @@ namespace LdapAndAdLibrary
     {
         private LdapConnection _connection;
 
+        private string _serverUrl;
 
         /// <summary>
         /// Login to LDAP Server. 可以使用此方法驗證使用者的帳號和密碼是否正確。
         /// </summary>
         /// <param name="serverUrl"></param>
-        /// <param name="adminAccount"></param>
+        /// <param name="userAccount">例如：administrator, administrator@example.com</param>
         /// <param name="password"></param>
         /// <param name="domain"></param>
-        public LdapHelper(string serverUrl, string adminAccount, string password, string domain = null)
+        public LdapHelper(string serverUrl, string userAccount, string password)
         {
-            _connection = new LdapConnection(serverUrl);
-            _connection.Credential = new NetworkCredential(adminAccount, password, domain);
-            _connection.Bind();
+            _serverUrl = serverUrl;
+
+            Login(userAccount, password);
         }
 
+        public void Login(string userAccount, string password)
+        {
+            // 若之前有登入過，則先釋放資源。
+            if (_connection != null)
+            {
+                _connection.Dispose();
+            }
+
+            _connection = new LdapConnection(_serverUrl);
+            _connection.Credential = new NetworkCredential(userAccount, password);
+            _connection.Bind(); // 登入
+        }
+
+        /// <summary>
+        /// 刪除指定的物件
+        /// </summary>
+        /// <param name="distinguishedName">欲刪除的物件的 Distinguished Name</param>
+        /// <returns>執行結果。ResultCode.Success 代表成功。其它代表失敗。</returns>
         public ResultCode Delete(string distinguishedName)
         {
             try
@@ -51,19 +71,18 @@ namespace LdapAndAdLibrary
         /// <param name="baseDn">The distinguished name of the base node at which to start the search</param>
         /// <param name="ldapFilter">An LDAP filter as defined by RFC4515</param>
         /// <returns>A flat list of dictionaries which in turn include attributes and the distinguished name (DN)</returns>
-        public List<string> Search(string distinguishedName, string ldapFilter = null, SearchScope searchScope = SearchScope.Subtree, params string[] attributeList)
+        public Dictionary<string, List<AttributeDataModel>> Search(string distinguishedName, string ldapFilter = null, SearchScope searchScope = SearchScope.Base, params string[] requestAttributeList)
         {
-            var request = new SearchRequest(distinguishedName, ldapFilter, searchScope, attributeList);
+            var request = new SearchRequest(distinguishedName, ldapFilter, searchScope, requestAttributeList);
             var response = (SearchResponse)_connection.SendRequest(request);
 
-            //var result = new List<Dictionary<string, string>>();
-            var result = new List<string>();
+            var result = new Dictionary<string, List<AttributeDataModel>>();
 
             foreach (SearchResultEntry entry in response.Entries)
             {
-                //var dic = new Dictionary<string, string>();
-                //dic["DN"] = entry.DistinguishedName;
+                List<AttributeDataModel> attributeList = new List<AttributeDataModel>();
 
+                // Sort by attribute name.
                 List<string> attributeNameList = new List<string>(entry.Attributes.AttributeNames.Count);
                 foreach (string name in entry.Attributes.AttributeNames)
                 {
@@ -73,76 +92,34 @@ namespace LdapAndAdLibrary
 
                 foreach (string attributeName in attributeNameList)
                 {
-                    for (int i = 0; i < entry.Attributes[attributeName].Count; i++)
+                    DirectoryAttribute attribute = entry.Attributes[attributeName];
+
+                    // 一個 Attribute Name 可能有一個或多個 Attribute value.
+                    for (int i = 0; i < attribute.Count; i++)
                     {
-                        //dic[attrName] = entry.Attributes[attrName][i].ToString();
-
-                        object attributeValue = entry.Attributes[attributeName][i];
+                        object attributeValue = attribute[i];
                         string valueString = ExtractAttributValue(attributeName, attributeValue);
-                        result.Add($"{attributeName}={valueString}");
-
-                        //string[] attributeValues = entry.Attributes[attrName][i].ToString().Split(',');
-                        //for (int a = 0; a < attributeValues.Length; a++)
-                        //{
-                        //    string[] value = attributeValues[i].Split('=');
-                        //    //if (value[1].Equals("Organizational-Unit"))
-                        //    //{
-                        //    //    //做事
-                        //    //}
-                        //}
+                        string typeName = attributeValue.GetType().Name;
+                        attributeList.Add(new AttributeDataModel() {
+                            Name = attributeName,
+                            Value = valueString,
+                            Type = typeName }
+                        );
                     }
                 }
 
-                result.Add(Environment.NewLine);
+                result.Add(entry.DistinguishedName, attributeList);
             }
 
             return result;
         }
 
-        ///// <summary>
-        ///// Adds a user to the LDAP server database. This method is intentionally less generic than the search one to
-        ///// make it easier to add meaningful information to the database.
-        ///// </summary>
-        ///// <param name="user">The user to add</param>
-        //public void addUser(UserModel user)
-        //{
-        //    var sha1 = new SHA1Managed();
-        //    var digest = Convert.ToBase64String(sha1.ComputeHash(System.Text.Encoding.UTF8.GetBytes(user.UserPassword)));
-
-        //    var request = new AddRequest(user.DN, new DirectoryAttribute[] {
-        //        new DirectoryAttribute("uid", user.UID),
-        //        new DirectoryAttribute("ou", user.OU),
-        //        new DirectoryAttribute("userPassword", "{SHA}" + digest),
-        //        new DirectoryAttribute("objectClass", new string[] { "top", "account", "simpleSecurityObject" })
-        //    });
-
-        //    _connection.SendRequest(request);
-        //}
-
         /// <summary>
-        /// This method shows how to modify an attribute.
+        /// 特別解析 objectguid 和 objectsid 的值，轉為人類可閱讀的字串，其它皆轉為字串。
         /// </summary>
-        /// <param name="oldUid">Old user UID</param>
-        /// <param name="newUid">New user UID</param>
-        public void changeUserUid(string oldUid, string newUid)
-        {
-            var oldDn = string.Format("uid={0},ou=users,dc=example,dc=com", oldUid);
-            var newDn = string.Format("uid={0},ou=users,dc=example,dc=com", newUid);
-
-            DirectoryRequest request = new ModifyDNRequest(oldDn, "ou=users,dc=example,dc=com", "uid=" + newUid);
-            _connection.SendRequest(request);
-
-            request = new ModifyRequest(newDn, DirectoryAttributeOperation.Replace, "uid", new string[] { newUid });
-            _connection.SendRequest(request);
-        }
-
-        public ResultCode Compare(string distinguishedName, string attributeName, string attributeValue)
-        {
-            var request = new CompareRequest(distinguishedName, attributeName, attributeValue);
-            CompareResponse response = (CompareResponse)_connection.SendRequest(request);
-            return response.ResultCode;
-        }
-
+        /// <param name="name">Attribut Name</param>
+        /// <param name="value">Attribut Value</param>
+        /// <returns></returns>
         public static string ExtractAttributValue(string name, object value)
         {
             string valueString;
@@ -167,6 +144,52 @@ namespace LdapAndAdLibrary
 
             return valueString;
         }
+
+        ///// <summary>
+        ///// Adds a user to the LDAP server database. This method is intentionally less generic than the search one to
+        ///// make it easier to add meaningful information to the database.
+        ///// </summary>
+        ///// <param name="user">The user to add</param>
+        //public void addUser(UserModel user)
+        //{
+        //    var sha1 = new SHA1Managed();
+        //    var digest = Convert.ToBase64String(sha1.ComputeHash(System.Text.Encoding.UTF8.GetBytes(user.UserPassword)));
+
+        //    var request = new AddRequest(user.DN, new DirectoryAttribute[] {
+        //        new DirectoryAttribute("uid", user.UID),
+        //        new DirectoryAttribute("ou", user.OU),
+        //        new DirectoryAttribute("userPassword", "{SHA}" + digest),
+        //        new DirectoryAttribute("objectClass", new string[] { "top", "account", "simpleSecurityObject" })
+        //    });
+
+        //    _connection.SendRequest(request);
+        //}
+
+        ///// <summary>
+        ///// This method shows how to modify an attribute.
+        ///// </summary>
+        ///// <param name="oldUid">Old user UID</param>
+        ///// <param name="newUid">New user UID</param>
+        //public void ChangeUserUid(string oldUid, string newUid)
+        //{
+        //    throw new NotImplementedException();
+
+        //    var oldDn = string.Format("uid={0},ou=users,dc=example,dc=com", oldUid);
+        //    var newDn = string.Format("uid={0},ou=users,dc=example,dc=com", newUid);
+
+        //    DirectoryRequest request = new ModifyDNRequest(oldDn, "ou=users,dc=example,dc=com", "uid=" + newUid);
+        //    _connection.SendRequest(request);
+
+        //    request = new ModifyRequest(newDn, DirectoryAttributeOperation.Replace, "uid", new string[] { newUid });
+        //    _connection.SendRequest(request);
+        //}
+
+        //public ResultCode Compare(string distinguishedName, string attributeName, string attributeValue)
+        //{
+        //    var request = new CompareRequest(distinguishedName, attributeName, attributeValue);
+        //    CompareResponse response = (CompareResponse)_connection.SendRequest(request);
+        //    return response.ResultCode;
+        //}
 
         #region Implement IDisposable.
         // Track whether Dispose has been called.
