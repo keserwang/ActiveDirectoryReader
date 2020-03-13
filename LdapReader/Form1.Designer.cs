@@ -46,6 +46,8 @@
             this.labelResultCount = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.textBoxFilter = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewAttribute)).BeginInit();
             this.SuspendLayout();
             // 
@@ -60,9 +62,9 @@
             // 
             // textBoxPath
             // 
-            this.textBoxPath.Location = new System.Drawing.Point(31, 3);
+            this.textBoxPath.Location = new System.Drawing.Point(39, 3);
             this.textBoxPath.Name = "textBoxPath";
-            this.textBoxPath.Size = new System.Drawing.Size(534, 22);
+            this.textBoxPath.Size = new System.Drawing.Size(526, 22);
             this.textBoxPath.TabIndex = 2;
             // 
             // labelPath
@@ -70,9 +72,9 @@
             this.labelPath.AutoSize = true;
             this.labelPath.Location = new System.Drawing.Point(1, 6);
             this.labelPath.Name = "labelPath";
-            this.labelPath.Size = new System.Drawing.Size(28, 12);
+            this.labelPath.Size = new System.Drawing.Size(38, 12);
             this.labelPath.TabIndex = 3;
-            this.labelPath.Text = "Path:";
+            this.labelPath.Text = "Server:";
             // 
             // labelAccount
             // 
@@ -143,21 +145,21 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(1, 40);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(24, 12);
+            this.label3.Size = new System.Drawing.Size(101, 12);
             this.label3.TabIndex = 17;
-            this.label3.Text = "DN:";
+            this.label3.Text = "Distinguished Name:";
             // 
             // textBoxDn
             // 
-            this.textBoxDn.Location = new System.Drawing.Point(31, 37);
+            this.textBoxDn.Location = new System.Drawing.Point(100, 37);
             this.textBoxDn.Name = "textBoxDn";
-            this.textBoxDn.Size = new System.Drawing.Size(815, 22);
+            this.textBoxDn.Size = new System.Drawing.Size(465, 22);
             this.textBoxDn.TabIndex = 18;
             // 
             // buttonDelete
             // 
             this.buttonDelete.Enabled = false;
-            this.buttonDelete.Location = new System.Drawing.Point(930, 38);
+            this.buttonDelete.Location = new System.Drawing.Point(930, 37);
             this.buttonDelete.Name = "buttonDelete";
             this.buttonDelete.Size = new System.Drawing.Size(75, 23);
             this.buttonDelete.TabIndex = 19;
@@ -167,7 +169,7 @@
             // 
             // buttonSearch
             // 
-            this.buttonSearch.Location = new System.Drawing.Point(852, 38);
+            this.buttonSearch.Location = new System.Drawing.Point(852, 37);
             this.buttonSearch.Name = "buttonSearch";
             this.buttonSearch.Size = new System.Drawing.Size(75, 23);
             this.buttonSearch.TabIndex = 1;
@@ -211,12 +213,30 @@
             this.label4.TabIndex = 25;
             this.label4.Text = "Attribute";
             // 
+            // textBoxFilter
+            // 
+            this.textBoxFilter.Location = new System.Drawing.Point(603, 37);
+            this.textBoxFilter.Name = "textBoxFilter";
+            this.textBoxFilter.Size = new System.Drawing.Size(243, 22);
+            this.textBoxFilter.TabIndex = 26;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(571, 40);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(32, 12);
+            this.label5.TabIndex = 27;
+            this.label5.Text = "Filter:";
+            // 
             // Form1
             // 
             this.AcceptButton = this.buttonSearch;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1008, 661);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.textBoxFilter);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.labelResultCount);
@@ -262,6 +282,8 @@
         private System.Windows.Forms.Label labelResultCount;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox textBoxFilter;
+        private System.Windows.Forms.Label label5;
     }
 }
 

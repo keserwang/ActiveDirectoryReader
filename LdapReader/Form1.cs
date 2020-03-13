@@ -30,20 +30,31 @@ namespace LdapReader
         {
             InitializeComponent();
 
-            textBoxPath.Text = ConfigurationManager.AppSettings["Path"];
-            textBoxAccount.Text = ConfigurationManager.AppSettings["Account"];
-            textBoxPassword.Text = ConfigurationManager.AppSettings["Password"];
-            textBoxDn.Text = ConfigurationManager.AppSettings["DistinguishedName"];
+            try
+            {
+                textBoxPath.Text = ConfigurationManager.AppSettings["Path"];
+                textBoxAccount.Text = ConfigurationManager.AppSettings["Account"];
+                textBoxPassword.Text = ConfigurationManager.AppSettings["Password"];
+                textBoxDn.Text = ConfigurationManager.AppSettings["DistinguishedName"];
 
-            ldapHelper = new LdapHelper(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
+                ldapHelper = new LdapHelper(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
 
-            dtAttribute = new DataTable();
-            dtAttribute.Columns.Add("Name");
-            //dtAttribute.Columns.Add("Type");
-            dtAttribute.Columns.Add("Value");
-            dataGridViewAttribute.DataSource = dtAttribute;
+                dtAttribute = new DataTable();
+                dtAttribute.Columns.Add("Name");
+                //dtAttribute.Columns.Add("Type");
+                dtAttribute.Columns.Add("Value");
+                dataGridViewAttribute.DataSource = dtAttribute;
 
-            //attributeDictionary = new Dictionary<string, List<AttributeDataModel>>();
+                //attributeDictionary = new Dictionary<string, List<AttributeDataModel>>();
+            }
+            catch (Exception ex)
+            {
+                richTextBoxMessage.AppendText(ex.ToString());
+            }
+            finally
+            {
+                richTextBoxMessage.ScrollToCaret();
+            }
         }
 
         private void buttonLogin_Click(object sender, EventArgs e)
@@ -100,6 +111,9 @@ namespace LdapReader
                 // Display a wait cursor while the TreeNodes are being created.
                 Cursor.Current = Cursors.WaitCursor;
 
+                richTextBoxMessage.Clear();
+                dtAttribute.Clear();
+
                 FillTreeView();
             }
             catch (Exception ex)
@@ -119,8 +133,10 @@ namespace LdapReader
         {
             treeView1.BeginUpdate();
             treeView1.Nodes.Clear();
+            string ldapFilter = string.IsNullOrWhiteSpace(textBoxFilter.Text) ? null : textBoxFilter.Text;
+            Dictionary<string, List<AttributeDataModel>> result = ldapHelper.Search(textBoxDn.Text, ldapFilter, searchScope: SearchScope.Base);
 
-            Dictionary<string, List<AttributeDataModel>> result = ldapHelper.Search(textBoxDn.Text, searchScope: SearchScope.Base);
+            //Dictionary<string, List<AttributeDataModel>> result = ldapHelper.Search(textBoxDn.Text, searchScope: SearchScope.Base);
 
             int resultCount = 0;
             foreach (var item in result)
@@ -132,6 +148,7 @@ namespace LdapReader
             }
 
             treeView1.EndUpdate();
+            treeView1.ResumeLayout();
             labelResultCount.Text = resultCount.ToString();
         }
 
@@ -152,6 +169,12 @@ namespace LdapReader
             return resultCount;
         }
 
+        /// <summary>
+        /// 將 TreeNode.Tag 中的資料帶入 dataGridViewAttribute。
+        /// 因為 dataGridViewAttribute.DataSource = dtAttribute，所以將資料帶入 dtAttribute 即可。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
             dtAttribute.Clear();

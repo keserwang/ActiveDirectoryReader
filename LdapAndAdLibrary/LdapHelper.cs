@@ -40,7 +40,7 @@ namespace LdapAndAdLibrary
             }
 
             _connection = new LdapConnection(_serverUrl);
-            _connection.Credential = new NetworkCredential(userAccount, password);
+            _connection.Credential = new NetworkCredential(userAccount, password); // 雖然有個多型可以傳入 Domain 但是沒有效果。
             _connection.Bind(); // 登入
         }
 
@@ -101,7 +101,7 @@ namespace LdapAndAdLibrary
                         string valueString = ExtractAttributValue(attributeName, attributeValue);
                         string typeName = attributeValue.GetType().Name;
                         attributeList.Add(new AttributeDataModel() {
-                            Name = attributeName,
+                            Name = attribute.Name,
                             Value = valueString,
                             Type = typeName }
                         );
