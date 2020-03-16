@@ -114,7 +114,9 @@ namespace LdapReader
                 richTextBoxMessage.Clear();
                 dtAttribute.Clear();
 
-                FillTreeView();
+                string ldapFilter = string.IsNullOrWhiteSpace(textBoxFilter.Text) ? null : textBoxFilter.Text;
+                int resultCount = fillTreeView(textBoxDn.Text, ldapFilter);
+                labelResultCount.Text = resultCount.ToString();
             }
             catch (Exception ex)
             {
@@ -129,33 +131,41 @@ namespace LdapReader
             }
         }
 
-        private void FillTreeView()
+        private int fillTreeView(string searchBaseDn, string ldapFilter = null)
         {
             treeView1.BeginUpdate();
             treeView1.Nodes.Clear();
-            string ldapFilter = string.IsNullOrWhiteSpace(textBoxFilter.Text) ? null : textBoxFilter.Text;
-            Dictionary<string, List<AttributeDataModel>> result = ldapHelper.Search(textBoxDn.Text, ldapFilter, searchScope: SearchScope.Base);
 
-            //Dictionary<string, List<AttributeDataModel>> result = ldapHelper.Search(textBoxDn.Text, searchScope: SearchScope.Base);
+            // 搜尋 Base DN 本身，只驗證存在與否，不做過濾
+            Dictionary<string, List<AttributeDataModel>> result = ldapHelper.Search(searchBaseDn, searchScope: SearchScope.Base);
 
-            int resultCount = 0;
+            // 搜尋 Base DN 的所有後代，並做過濾。將所有搜尋結果納入樹狀結構。
+            int resultCount = result.Count; // 應只有一筆
             foreach (var item in result)
             {
                 TreeNode treeNodeRoot = treeView1.Nodes.Add(item.Key);
-                treeNodeRoot.Tag = item.Value;
-                resultCount++;
-                resultCount += searchChildren(treeNodeRoot);
+                treeNodeRoot.Tag = item.Value; // 用Tag儲存該物件的Attributes.
+                resultCount += searchChildren(treeNodeRoot, ldapFilter);
             }
 
             treeView1.EndUpdate();
             treeView1.ResumeLayout();
-            labelResultCount.Text = resultCount.ToString();
+
+            return resultCount;
         }
 
-        private int searchChildren(TreeNode parent)
+        /// <summary>
+        /// 搜尋後代，並做過濾
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ldapFilter"></param>
+        /// <returns></returns>
+        private int searchChildren(TreeNode parent, string ldapFilter = null)
         {
-            Dictionary<string, List<AttributeDataModel>> children = ldapHelper.Search(parent.Text, searchScope: SearchScope.OneLevel);
+            // 搜尋下一代
+            Dictionary<string, List<AttributeDataModel>> children = ldapHelper.Search(parent.Text, ldapFilter, searchScope: SearchScope.OneLevel);
 
+            // 將所有搜尋結果納入樹狀結構
             int resultCount = children.Count;
             for (int i = 0; i < children.Count; i++)
             {
@@ -163,6 +173,7 @@ namespace LdapReader
 
                 TreeNode treeNodeChild = parent.Nodes.Add(child.Key);
                 treeNodeChild.Tag = child.Value;
+                // 搜尋下一代的下一代
                 resultCount += searchChildren(treeNodeChild);
             }
 
