@@ -37,6 +37,9 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Security.Principal.Windows, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.4.7.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,6 +72,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -83,9 +87,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LdapAndAdLibrary\LdapAndAdLibrary.csproj">
-      <Project>{0F885AF0-29E7-4C27-B014-AFED703C6DBF}</Project>
-      <Name>LdapAndAdLibrary</Name>
+    <ProjectReference Include="..\ActiveDirectoryLibrary\ActiveDirectoryLibrary.csproj">
+      <Project>{ee5061c3-029b-493c-95b9-dc9980c994f1}</Project>
+      <Name>ActiveDirectoryLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DataModel\DirectoryLibrary.csproj">
+      <Project>{3E0422E9-F708-4EA6-BDA5-8D16EDEB3999}</Project>
+      <Name>DirectoryLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

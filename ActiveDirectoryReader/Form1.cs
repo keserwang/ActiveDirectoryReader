@@ -11,7 +11,8 @@ using System.DirectoryServices;
 using System.Configuration;
 using System.Security.Principal;
 using System.Collections;
-using LdapAndAdLibrary;
+using ActiveDirectoryLibrary;
+using DirectoryLibrary;
 
 namespace ActiveDirectoryReader
 {
@@ -39,9 +40,8 @@ namespace ActiveDirectoryReader
             {
                 richTextBoxMessage.Clear();
 
-                DirectoryEntry root = new DirectoryEntry(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
-                DirectorySearcher search = new DirectorySearcher(root);
-                SearchResultCollection results = search.FindAll();
+                ActiveDirectoryHelper adHelper = new ActiveDirectoryHelper(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
+                SearchResultCollection results = adHelper.FindAll();
 
                 if (results == null)
                 {
@@ -69,7 +69,7 @@ namespace ActiveDirectoryReader
                             if (value == null)
                                 continue;
 
-                            string valueString = LdapHelper.ExtractAttributValue(name, value);
+                            string valueString = DirectoryUtility.ExtractAttributValue(name, value);
                             richTextBoxMessage.AppendText(string.Format("{0}={1}\n", name, valueString));
                         }
                     }
@@ -97,9 +97,8 @@ namespace ActiveDirectoryReader
                 richTextBoxMessage.Clear();
                 dtAttribute.Clear();
 
-                DirectoryEntry root = new DirectoryEntry(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
-                DirectorySearcher search = new DirectorySearcher(root);
-                SearchResult result = search.FindOne();
+                ActiveDirectoryHelper adHelper = new ActiveDirectoryHelper(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
+                SearchResult result = adHelper.FindOne();
 
                 if (result == null)
                 {
@@ -125,7 +124,7 @@ namespace ActiveDirectoryReader
                         if (value == null)
                             continue;
 
-                        string valueString = LdapHelper.ExtractAttributValue(name, value);
+                        string valueString = DirectoryUtility.ExtractAttributValue(name, value);
 
                         richTextBoxMessage.AppendText(string.Format("{0}={1}\n", name, valueString));
 

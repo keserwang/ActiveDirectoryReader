@@ -86,9 +86,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LdapAndAdLibrary\LdapAndAdLibrary.csproj">
+    <ProjectReference Include="..\LdapAndAdLibrary\LdapLibrary.csproj">
       <Project>{0f885af0-29e7-4c27-b014-afed703c6dbf}</Project>
-      <Name>LdapAndAdLibrary</Name>
+      <Name>LdapLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
