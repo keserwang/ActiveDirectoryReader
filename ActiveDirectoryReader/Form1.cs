@@ -41,7 +41,7 @@ namespace ActiveDirectoryReader
                 richTextBoxMessage.Clear();
 
                 ActiveDirectoryHelper adHelper = new ActiveDirectoryHelper(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
-                SearchResultCollection results = adHelper.FindAll();
+                SearchResultCollection results = adHelper.SearchAll();
 
                 if (results == null)
                 {
@@ -98,7 +98,7 @@ namespace ActiveDirectoryReader
                 dtAttribute.Clear();
 
                 ActiveDirectoryHelper adHelper = new ActiveDirectoryHelper(textBoxPath.Text, textBoxAccount.Text, textBoxPassword.Text);
-                SearchResult result = adHelper.FindOne();
+                SearchResult result = adHelper.SearchFirstOne();
 
                 if (result == null)
                 {

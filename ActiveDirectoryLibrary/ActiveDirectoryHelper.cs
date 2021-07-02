@@ -27,14 +27,14 @@ namespace ActiveDirectoryLibrary
             root = new DirectoryEntry(_serverUrl, userAccount, password);
         }
 
-        public SearchResult FindOne()
+        public SearchResult SearchFirstOne()
         {
             DirectorySearcher search = new DirectorySearcher(root);
             SearchResult result = search.FindOne();
             return result;
         }
 
-        public SearchResultCollection FindAll()
+        public SearchResultCollection SearchAll()
         {
             DirectorySearcher search = new DirectorySearcher(root);
             SearchResultCollection results = search.FindAll();
